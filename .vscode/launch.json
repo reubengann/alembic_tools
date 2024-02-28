@@ -1,0 +1,15 @@
+
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Visualize",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/alembic_tools/command.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": ["visualize"]
+    }
+  ]
+}

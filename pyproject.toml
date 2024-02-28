@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=67.8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alembic_tools"
+version = "0.0.1"
+authors = []
+description = "Add a description"
+readme = "readme.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+"alembic", "graphviz"
+]
+
+[project.scripts]
+alembic_tools = "alembic_tools.command:main"
+
+[tools.setuptools.packages.find]
+where = ["src"]
