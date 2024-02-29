@@ -20,10 +20,11 @@ def is_graphviz_installed():
         return False
 
 
-def visualize_graph_graphviz():
+def visualize_graph_graphviz(horiz: bool):
     alembic_config = Config(file_="alembic.ini", ini_section="alembic")
     script = ScriptDirectory.from_config(alembic_config)
-    dot = Digraph(format="png")
+    rankdir = "LR" if horiz else "TB"
+    dot = Digraph(format="png", graph_attr={"rankdir": rankdir})
     for revision in script.walk_revisions():
         dot.node(
             revision.revision,
