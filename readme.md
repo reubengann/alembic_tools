@@ -41,3 +41,17 @@ This will combine two revisions, setting the new combined revision to <revision_
 Use with caution. If any database is currently at <revision_1>, that rev will cease to exist, and a manual SQL statement will have to be issued to restore it to the graph.
 
 Use the `-m` option to set a message. Otherwise it will be blank.
+
+## Development
+
+Set up the environment:
+
+```bash
+pip install pytest pytest-cov black
+```
+
+To run code coverage:
+
+```bash
+pytest --cov=src test/ --cov-report term-missing
+```
