@@ -10,6 +10,16 @@
       "console": "integratedTerminal",
       "justMyCode": true,
       "args": ["visualize"]
+    },
+    {
+      "name": "Squash",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "/repos/alembic_tools/src/alembic_tools/command.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "cwd": "/repos/alem_test",
+      "args": ["squash", "6d6f", "d5a6", "-m", "create post"]
     }
   ]
 }
