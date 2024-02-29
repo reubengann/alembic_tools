@@ -147,5 +147,6 @@ def squash_commits(rev1_prefix: str, rev2_prefix: str, commit_name: str | None) 
         f"""
         update alembic_version set version_num = '{script.revision}'
         """
+        "To undo this change, copy the files from the squashed_revisions folder back into versions and delete the new revision."
     )
     return 0
