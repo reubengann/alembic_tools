@@ -24,13 +24,13 @@ def visualize_graph_graphviz(horiz: bool):
     alembic_config = Config(file_="alembic.ini", ini_section="alembic")
     script = ScriptDirectory.from_config(alembic_config)
     rankdir = "LR" if horiz else "TB"
-    dot = Digraph(format="png", graph_attr={"rankdir": rankdir})
+    dot = Digraph(
+        format="png",
+        graph_attr={"rankdir": rankdir},
+        node_attr={"fontname": "Helvetica,Arial,sans-serif", "shape": "rect"},
+    )
     for revision in script.walk_revisions():
-        dot.node(
-            revision.revision,
-            label=f"{revision.revision}\n{revision.doc}",
-            shape="Msquare",
-        )
+        dot.node(revision.revision, label=f"{revision.revision}\n{revision.doc}")
         if revision.down_revision is None:  # this is the origin
             dot.edge("base", revision.revision)
         elif isinstance(revision.down_revision, str):
