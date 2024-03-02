@@ -1,18 +1,15 @@
 import ast
 from pathlib import Path
 import re
-from typing import NamedTuple, Protocol
-from alembic.config import Config
-from alembic.script import ScriptDirectory, Script
+from typing import NamedTuple
+from alembic.script import Script
 import alembic.util
 
-
-def find_revs_that_start_with(prefix: str, d: dict[str, Script]) -> list[str]:
-    ret = []
-    for rev in d:
-        if rev.startswith(prefix):
-            ret.append(rev)
-    return ret
+from alembic_tools.revision_collection import (
+    find_revs_that_start_with,
+    get_revision_map,
+    get_script_directory,
+)
 
 
 class ConnectedRevisions(NamedTuple):
@@ -130,9 +127,8 @@ def make_squashed_text(
 
 
 def squash_commits(rev1_prefix: str, rev2_prefix: str, commit_name: str | None) -> int:
-    alembic_config = Config(file_="alembic.ini", ini_section="alembic")
-    script_folder = ScriptDirectory.from_config(alembic_config)
-    revision_map = {a.revision: a for a in script_folder.walk_revisions()}
+    script_folder = get_script_directory()
+    revision_map = get_revision_map(script_folder)
     revs_to_squash = find_revisions_to_squash(rev1_prefix, rev2_prefix, revision_map)
     if revs_to_squash is None:
         return 1

@@ -42,6 +42,16 @@ Use with caution. If any database is currently at <revision_1>, that rev will ce
 
 Use the `-m` option to set a message. Otherwise it will be blank.
 
+### Move
+
+```bash
+alembic_tools move <revision_to_move> <revision_to_place_after>
+```
+
+This will reorder the graph so that revision_to_move comes just after revision_to_place_after. This will not
+work if revision_to_move has multiple down_revisions. You can use "base" as revision_to_place_after if you want
+to move something to the very beginning.
+
 ## Development
 
 Set up the environment:
