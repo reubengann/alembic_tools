@@ -45,12 +45,22 @@ Use the `-m` option to set a message. Otherwise it will be blank.
 ### Move
 
 ```bash
-alembic_tools move <revision_to_move> <revision_to_place_after>
+alembic_tools move [revision_to_move] [revision_to_place_after]
 ```
 
 This will reorder the graph so that revision_to_move comes just after revision_to_place_after. This will not
 work if revision_to_move has multiple down_revisions. You can use "base" as revision_to_place_after if you want
 to move something to the very beginning.
+
+### Search
+
+```bash
+alembic_tools search --table [table_name]
+```
+
+Caveats: your alembic import must be `from alembic import op` (which is the default)
+
+Right now, only finds table creation and adding columns
 
 ## Development
 
