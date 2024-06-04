@@ -5,6 +5,7 @@ from typing import NamedTuple
 from alembic.script import Script
 import alembic.util
 
+from alembic_tools.code_reader import get_revision_methods
 from alembic_tools.revision_collection import (
     find_revs_that_start_with,
     get_revision_map,
@@ -56,28 +57,6 @@ def find_revisions_to_squash(
         )
         return None
     return ConnectedRevisions(from_rev, to_rev)
-
-
-def get_revision_methods(p: Path) -> tuple[str, str] | None:
-    code = p.read_text()
-    tree = ast.parse(p.read_text(), filename=p)
-    upgrade_code = extract_function_code(tree, code, "upgrade")
-    downgrade_code = extract_function_code(tree, code, "downgrade")
-    if upgrade_code is None:
-        return None
-    if downgrade_code is None:
-        return None
-    return upgrade_code, downgrade_code
-
-
-def extract_function_code(tree, code, function_name) -> str | None:
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name == function_name:
-            function_code = ast.get_source_segment(code, node)
-            if function_code is None:
-                return None
-            return function_code.strip()
-    return None
 
 
 class FormatException(Exception):

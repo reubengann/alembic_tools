@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 from alembic_tools.move_revision import move_revision
 
+from alembic_tools.search_collection import search_collection
 from alembic_tools.visualize_graph import (
     is_graphviz_installed,
     visualize_graph_graphviz,
@@ -19,8 +20,14 @@ def main() -> int:
     )
 
     viz_p = subp.add_parser("visualize", help="Visualize the alembic graph")
-    viz_p.add_argument("--horiz", action="store_true")
-    viz_p.add_argument("--open", action="store_true")
+    viz_p.add_argument(
+        "--horiz",
+        action="store_true",
+        help="Lay out graph horizontally (usually vertical)",
+    )
+    viz_p.add_argument(
+        "--open", action="store_true", help="Open image after generating"
+    )
     squash_p = subp.add_parser(
         "squash", help="Squash/combine two revisions into a single revision"
     )
@@ -35,6 +42,8 @@ def main() -> int:
         "rev_to_put_after",
         help="Revision to put the moved revision after. Use base if you want to put it at the beginning.",
     )
+    search_p = subp.add_parser("search")
+    search_p.add_argument("-t", "--table")
 
     args = parser.parse_args()
     if not Path("./alembic.ini").exists():
@@ -61,6 +70,12 @@ def main() -> int:
             rev_to_move = args.rev_to_move
             rev_to_put_after = args.rev_to_put_after
             return move_revision(rev_to_move, rev_to_put_after)
+        case "search":
+            if args.table is None:
+                print("Must indicate what table to search for")
+                return 1
+            search_collection(args.table)
+            return 0
         case _:
             parser.print_help()
             return 1

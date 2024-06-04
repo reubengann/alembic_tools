@@ -17,6 +17,10 @@ def get_script_directory() -> ScriptDirectory:
     return ScriptDirectory.from_config(alembic_config)
 
 
+def get_revision_walk(script_folder: ScriptDirectory):
+    return script_folder.walk_revisions()
+
+
 def get_revision_map(script_folder: ScriptDirectory):
     return {a.revision: a for a in script_folder.walk_revisions()}
 
