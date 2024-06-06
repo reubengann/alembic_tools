@@ -42,7 +42,7 @@ def main() -> int:
         "rev_to_put_after",
         help="Revision to put the moved revision after. Use base if you want to put it at the beginning.",
     )
-    search_p = subp.add_parser("search")
+    search_p = subp.add_parser("search", help="Search for an entity to see its changes")
     search_p.add_argument("-t", "--table")
 
     args = parser.parse_args()
