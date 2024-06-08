@@ -6,6 +6,8 @@ from pathlib import Path
 class StatementType(Enum):
     UNKNOWN = 0
     CREATE_TABLE = 1
+    ADD_COLUMN = 2
+    REPLACEABLE_OP = 3
 
 
 class Statement:
@@ -32,6 +34,33 @@ class CreateTableStatement(Statement):
         self.table_name = table_name
         super().__init__(StatementType.CREATE_TABLE)
         self.columns = []
+
+
+class AddColumnStatement(Statement):
+
+    table_name: str
+
+    def __init__(self, table_name: str) -> None:
+        super().__init__(StatementType.ADD_COLUMN)
+        self.table_name = table_name
+
+
+class ReplaceableOperation(Enum):
+    NONE = 0
+    CREATE = 1
+    DROP = 2
+    REPLACE = 3
+
+
+class ReplaceableStatement(Statement):
+
+    replaceable_name: str
+    replaceable_op: ReplaceableOperation
+
+    def __init__(self, replaceable_name: str, op: ReplaceableOperation) -> None:
+        super().__init__(StatementType.REPLACEABLE_OP)
+        self.replaceable_name = replaceable_name
+        self.replaceable_op = op
 
 
 class Revision:
@@ -90,7 +119,7 @@ def is_sqla_column_call(arg: ast.expr) -> bool:
     return True
 
 
-def parse_table_create(child: ast.Call):
+def parse_table_create(child: ast.Call) -> CreateTableStatement:
     maybe_table_name = get_value_from_constant(child.args[0])
     if maybe_table_name is None:
         raise Exception("First argument of table_create is not a valid string")
@@ -102,6 +131,36 @@ def parse_table_create(child: ast.Call):
     return ret
 
 
+def parse_add_column(child: ast.Call) -> AddColumnStatement:
+    maybe_table_name = get_value_from_constant(child.args[0])
+    if maybe_table_name is None:
+        raise Exception("First argument of add_column is not a valid string")
+    return AddColumnStatement(maybe_table_name)
+
+
+OPERATION_NAMES = {
+    "create_view": ReplaceableOperation.CREATE,
+    "drop_view": ReplaceableOperation.DROP,
+    "replace_view": ReplaceableOperation.REPLACE,
+}
+
+
+def is_replaceable_op(child: ast.Attribute) -> bool:
+    return child.attr in OPERATION_NAMES
+
+
+def parse_replaceable(child: ast.Call) -> ReplaceableStatement:
+    assert isinstance(child.func, ast.Attribute)
+    operation = child.func.attr
+    arg = child.args[0]
+    if not isinstance(arg, ast.Name):
+        raise Exception(
+            "Error while parsing replaceable: First argument was not a variable"
+        )
+
+    return ReplaceableStatement(arg.id, OPERATION_NAMES[operation])
+
+
 def parse_expr(expr: ast.Expr) -> Statement:
     for child in ast.walk(expr):
         if isinstance(child, ast.Call):
@@ -109,6 +168,10 @@ def parse_expr(expr: ast.Expr) -> Statement:
                 continue
             if is_alembic_call(child.func, "create_table"):
                 return parse_table_create(child)
+            if is_alembic_call(child.func, "add_column"):
+                return parse_add_column(child)
+            if is_replaceable_op(child.func):
+                return parse_replaceable(child)
     return Statement(StatementType.UNKNOWN)
 
 
