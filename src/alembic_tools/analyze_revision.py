@@ -142,6 +142,12 @@ OPERATION_NAMES = {
     "create_view": ReplaceableOperation.CREATE,
     "drop_view": ReplaceableOperation.DROP,
     "replace_view": ReplaceableOperation.REPLACE,
+    "create_sproc": ReplaceableOperation.CREATE,
+    "drop_sproc": ReplaceableOperation.DROP,
+    "replace_sproc": ReplaceableOperation.REPLACE,
+    "create_func": ReplaceableOperation.CREATE,
+    "drop_func": ReplaceableOperation.DROP,
+    "replace_func": ReplaceableOperation.REPLACE,
 }
 
 

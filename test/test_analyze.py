@@ -109,9 +109,15 @@ def test_table_create_with_foreign_keys():
         ("create_view", ReplaceableOperation.CREATE),
         ("drop_view", ReplaceableOperation.DROP),
         ("replace_view", ReplaceableOperation.REPLACE),
+        ("create_sproc", ReplaceableOperation.CREATE),
+        ("drop_sproc", ReplaceableOperation.DROP),
+        ("replace_sproc", ReplaceableOperation.REPLACE),
+        ("create_func", ReplaceableOperation.CREATE),
+        ("drop_func", ReplaceableOperation.DROP),
+        ("replace_func", ReplaceableOperation.REPLACE),
     ],
 )
-def test_create_view(operation: str, expected_output: ReplaceableOperation):
+def test_replaceable_ops(operation: str, expected_output: ReplaceableOperation):
     lines = f"""
     op.{operation}(vw_foobar)
 """
