@@ -44,6 +44,7 @@ def main() -> int:
     )
     search_p = subp.add_parser("search", help="Search for an entity to see its changes")
     search_p.add_argument("-t", "--table")
+    search_p.add_argument("-r", "--replaceable")
 
     args = parser.parse_args()
     if not Path("./alembic.ini").exists():
@@ -71,10 +72,10 @@ def main() -> int:
             rev_to_put_after = args.rev_to_put_after
             return move_revision(rev_to_move, rev_to_put_after)
         case "search":
-            if args.table is None:
-                print("Must indicate what table to search for")
+            if args.table is None and args.replaceable is None:
+                print("Must specify either a table or a replaceable entity")
                 return 1
-            search_collection(args.table)
+            search_collection(args.table, args.replaceable)
             return 0
         case _:
             parser.print_help()

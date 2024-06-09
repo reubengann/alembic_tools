@@ -28,13 +28,41 @@ def table_search(table_name, rev_analysis):
     return out
 
 
-def search_collection(table_name: str):
-    print(f"Table: {table_name}")
+def replaceable_search(replaceable_name, rev_analysis):
+    out = []
+    for stmt in rev_analysis.statements:
+        match stmt:
+            case ar.CreateTableStatement():
+                pass
+            case ar.AddColumnStatement():
+                pass
+            case ar.ReplaceableStatement():
+                if stmt.replaceable_name == replaceable_name:
+                    match stmt.replaceable_op:
+                        case ar.ReplaceableOperation.CREATE:
+                            out.append("Created")
+                        case ar.ReplaceableOperation.DROP:
+                            out.append("Dropped")
+                        case ar.ReplaceableOperation.REPLACE:
+                            out.append("Replaced")
+            case _:
+                pass
+    return out
+
+
+def search_collection(table_name: str | None, replaceable_name: str | None):
+    if table_name is not None:
+        print(f"Table: {table_name}")
+    if replaceable_name is not None:
+        print(f"Replacable entity {replaceable_name}")
     script_folder = get_script_directory()
     # TODO: try to order the graph
     for rev in list(get_revision_walk(script_folder)):
         p = Path(rev.path)
         rev_analysis = ar.analyze_revision(p)
-        out = table_search(table_name, rev_analysis)
-        if out:
-            print(f"{rev.revision} {', '.join(out)}")
+        if table_name is not None:
+            out = table_search(table_name, rev_analysis)
+            if out:
+                print(f"{rev.revision} {', '.join(out)}")
+        if replaceable_name is not None:
+            out = replaceable_search(replaceable_name, rev_analysis)
