@@ -39,10 +39,12 @@ class CreateTableStatement(Statement):
 class AddColumnStatement(Statement):
 
     table_name: str
+    column_name: str
 
-    def __init__(self, table_name: str) -> None:
+    def __init__(self, table_name: str, column_name: str) -> None:
         super().__init__(StatementType.ADD_COLUMN)
         self.table_name = table_name
+        self.column_name = column_name
 
 
 class ReplaceableOperation(Enum):
@@ -99,9 +101,9 @@ def get_value_from_constant(e: ast.expr) -> str | None:
     return e.value
 
 
-def parse_column_call(args: list[ast.expr]) -> Column:
-    assert isinstance(args[0], ast.Constant)
-    maybe_column_name = get_value_from_constant(args[0])
+def parse_column_call(arg: ast.expr) -> Column:
+    assert isinstance(arg, ast.Constant)
+    maybe_column_name = get_value_from_constant(arg)
     if maybe_column_name is None:
         raise Exception(
             "Parse error: Column statement does not have constant first argument"
@@ -127,7 +129,7 @@ def parse_table_create(child: ast.Call) -> CreateTableStatement:
     for arg in child.args[1:]:
         if is_sqla_column_call(arg):
             assert isinstance(arg, ast.Call)
-            ret.columns.append(parse_column_call(arg.args))
+            ret.columns.append(parse_column_call(arg.args[0]))
     return ret
 
 
@@ -135,7 +137,9 @@ def parse_add_column(child: ast.Call) -> AddColumnStatement:
     maybe_table_name = get_value_from_constant(child.args[0])
     if maybe_table_name is None:
         raise Exception("First argument of add_column is not a valid string")
-    return AddColumnStatement(maybe_table_name)
+    assert isinstance(child.args[1], ast.Call)
+    col = parse_column_call(child.args[1].args[0])
+    return AddColumnStatement(maybe_table_name, col.column_name)
 
 
 OPERATION_NAMES = {
@@ -193,6 +197,9 @@ def analyze_revision_text(text: str, p: Path | str) -> Revision:
     return rev
 
 
-def analyze_revision(path: str):
-    p = Path(path)
+def analyze_revision(path: str | Path):
+    if isinstance(path, str):
+        p = Path(path)
+    else:
+        p = path
     return analyze_revision_text(p.read_text(), p)

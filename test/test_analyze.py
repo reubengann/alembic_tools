@@ -80,6 +80,7 @@ def test_add_column():
     assert stmt.stype == StatementType.ADD_COLUMN
     assert isinstance(stmt, AddColumnStatement)
     assert stmt.table_name == "post"
+    assert stmt.column_name == "published_date"
 
 
 def test_table_create_with_foreign_keys():
