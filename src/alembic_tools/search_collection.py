@@ -57,6 +57,8 @@ def search_collection(table_name: str | None, replaceable_name: str | None):
         print(f"Replacable entity {replaceable_name}")
     script_folder = get_script_directory()
     # TODO: try to order the graph
+    # Traverse the graph and assign numbers to each revision, letting there be ties
+    # if there's a branch.
     for rev in list(get_revision_walk(script_folder)):
         p = Path(rev.path)
         rev_analysis = ar.analyze_revision(p)
