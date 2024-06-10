@@ -28,7 +28,7 @@ def table_search(table_name, rev_analysis):
     return out
 
 
-def replaceable_search(replaceable_name, rev_analysis):
+def replaceable_search(replaceable_name, rev_analysis) -> list[str]:
     out = []
     for stmt in rev_analysis.statements:
         match stmt:
@@ -68,3 +68,5 @@ def search_collection(table_name: str | None, replaceable_name: str | None):
                 print(f"{rev.revision} {', '.join(out)}")
         if replaceable_name is not None:
             out = replaceable_search(replaceable_name, rev_analysis)
+            if out:
+                print(f"{rev.revision} {', '.join(out)}")
