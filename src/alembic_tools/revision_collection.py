@@ -36,3 +36,48 @@ def get_unambiguous_revision(rev_to_move, revision_map) -> tuple[bool, str]:
         )
         return False, ""
     return True, revs1[0]
+
+
+def build_graph(script_folder: ScriptDirectory) -> dict[str, list[str]]:
+    graph = {}
+    for revision in script_folder.walk_revisions():
+        revision_id = revision.revision
+        down_revisions = revision.down_revision
+        if down_revisions is None:
+            down_revisions = []
+        elif isinstance(down_revisions, tuple):
+            down_revisions = list(down_revisions)
+        elif isinstance(down_revisions, str):
+            down_revisions = [down_revisions]
+        graph[revision_id] = down_revisions
+    return graph
+
+
+def topological_sort(graph: dict[str, list[str]]) -> list[str]:
+    visited: set[str] = set()
+    stack: list[str] = []
+
+    def dfs(node: str):
+        if node not in visited:
+            visited.add(node)
+            for neighbor in graph.get(node, []):
+                if isinstance(neighbor, list):
+                    for sub_neighbor in neighbor:
+                        if sub_neighbor not in visited:
+                            dfs(sub_neighbor)
+                elif neighbor not in visited:
+                    dfs(neighbor)
+            stack.append(node)
+
+    for node in graph:
+        if node not in visited:
+            dfs(node)
+
+    return stack[::-1]  # Reverse the stack to get the topological order
+
+
+def assign_order(script_folder: ScriptDirectory) -> dict[str, int]:
+    graph = build_graph(script_folder)
+    topo_order = topological_sort(graph)
+    order = {revision: idx for idx, revision in enumerate(topo_order)}
+    return order

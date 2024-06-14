@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 from alembic_tools.move_revision import move_revision
 
+from alembic_tools.revision_collection import assign_order, get_script_directory
 from alembic_tools.search_collection import search_collection
 from alembic_tools.visualize_graph import (
     is_graphviz_installed,
@@ -45,6 +46,8 @@ def main() -> int:
     search_p = subp.add_parser("search", help="Search for an entity to see its changes")
     search_p.add_argument("-t", "--table")
     search_p.add_argument("-r", "--replaceable")
+    # temp
+    subp.add_parser("order")
 
     args = parser.parse_args()
     if not Path("./alembic.ini").exists():
@@ -76,6 +79,11 @@ def main() -> int:
                 print("Must specify either a table or a replaceable entity")
                 return 1
             search_collection(args.table, args.replaceable)
+            return 0
+        # temp
+        case "order":
+            folder = get_script_directory()
+            print(assign_order(folder))
             return 0
         case _:
             parser.print_help()

@@ -44,7 +44,10 @@ def replaceable_search(replaceable_name, rev_analysis) -> list[str]:
                         case ar.ReplaceableOperation.DROP:
                             out.append("Dropped")
                         case ar.ReplaceableOperation.REPLACE:
-                            out.append("Replaced")
+                            if stmt.replaces is not None:
+                                out.append(f"Replaced ({stmt.replaces})")
+                            else:
+                                out.append("Replaced (unknown)")
             case _:
                 pass
     return out

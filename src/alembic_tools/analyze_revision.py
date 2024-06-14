@@ -58,11 +58,18 @@ class ReplaceableStatement(Statement):
 
     replaceable_name: str
     replaceable_op: ReplaceableOperation
+    replaces: str | None
 
-    def __init__(self, replaceable_name: str, op: ReplaceableOperation) -> None:
+    def __init__(
+        self,
+        replaceable_name: str,
+        op: ReplaceableOperation,
+        replaces: str | None = None,
+    ) -> None:
         super().__init__(StatementType.REPLACEABLE_OP)
         self.replaceable_name = replaceable_name
         self.replaceable_op = op
+        self.replaces = replaces
 
 
 class Revision:
@@ -156,6 +163,7 @@ OPERATION_NAMES = {
 
 
 def is_replaceable_op(child: ast.Attribute) -> bool:
+    # TODO: This fails if someone calls create_view instead of utils.create_view
     return child.attr in OPERATION_NAMES
 
 
@@ -167,8 +175,13 @@ def parse_replaceable(child: ast.Call) -> ReplaceableStatement:
         raise Exception(
             "Error while parsing replaceable: First argument was not a variable"
         )
-
-    return ReplaceableStatement(arg.id, OPERATION_NAMES[operation])
+    replaces = None
+    if child.keywords:
+        keyword = child.keywords[0]
+        if keyword.arg == "replaces":
+            if isinstance(keyword.value, ast.Constant):
+                replaces = get_value_from_constant(keyword.value)
+    return ReplaceableStatement(arg.id, OPERATION_NAMES[operation], replaces=replaces)
 
 
 def parse_expr(expr: ast.Expr) -> Statement:

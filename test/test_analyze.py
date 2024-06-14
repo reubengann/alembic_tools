@@ -135,6 +135,23 @@ vw_foobar = ReplaceableObject("vw_foobar", "otherstuff")
     assert stmt.replaceable_op == expected_output
 
 
+def test_replaceable_op_replaces():
+    lines = f"""
+    op.replace_view(vw_foobar, replaces="acoolrevision.vw_foobar")
+"""
+    preamble = """
+vw_foobar = ReplaceableObject("vw_foobar", "otherstuff")
+"""
+    rev = make_revision(lines, preamble)
+    result = analyze_revision_text(rev, "whatever.py")
+    assert len(result.statements) == 1
+    stmt = result.statements[0]
+    assert stmt.stype == StatementType.REPLACEABLE_OP
+    assert isinstance(stmt, ReplaceableStatement)
+    assert stmt.replaceable_name == "vw_foobar"
+    assert stmt.replaces == "acoolrevision.vw_foobar"
+
+
 def make_revision(lines: str, preamble_lines: str = ""):
     return f"""\"\"\"a description
 
