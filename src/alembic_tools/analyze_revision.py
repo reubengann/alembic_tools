@@ -8,6 +8,11 @@ class StatementType(Enum):
     CREATE_TABLE = 1
     ADD_COLUMN = 2
     REPLACEABLE_OP = 3
+    DROP_COLUMN = 4
+    CREATE_INDEX = 5
+    CREATE_FK = 6
+    DROP_TABLE = 7
+    ALTER_COLUMN = 8
 
 
 class Statement:
@@ -45,6 +50,57 @@ class AddColumnStatement(Statement):
         super().__init__(StatementType.ADD_COLUMN)
         self.table_name = table_name
         self.column_name = column_name
+
+
+class AlterColumnStatement(Statement):
+
+    table_name: str
+    column_name: str
+
+    def __init__(self, table_name: str, column_name: str) -> None:
+        super().__init__(StatementType.ALTER_COLUMN)
+        self.table_name = table_name
+        self.column_name = column_name
+
+
+class DropColumnStatement(Statement):
+
+    table_name: str
+    column_name: str
+
+    def __init__(self, table_name: str, column_name: str) -> None:
+        super().__init__(StatementType.DROP_COLUMN)
+        self.table_name = table_name
+        self.column_name = column_name
+
+
+class CreateIndexStatement(Statement):
+
+    table_name: str
+
+    def __init__(self, table_name: str) -> None:
+        super().__init__(StatementType.CREATE_INDEX)
+        self.table_name = table_name
+
+
+class DropTableStatement(Statement):
+
+    table_name: str
+
+    def __init__(self, table_name: str) -> None:
+        super().__init__(StatementType.DROP_TABLE)
+        self.table_name = table_name
+
+
+class CreateForeignKeyStatement(Statement):
+
+    table_name: str
+    referent_table_name: str
+
+    def __init__(self, table_name: str, referent_table_name: str) -> None:
+        super().__init__(StatementType.CREATE_FK)
+        self.table_name = table_name
+        self.referent_table_name = referent_table_name
 
 
 class ReplaceableOperation(Enum):
@@ -149,6 +205,51 @@ def parse_add_column(child: ast.Call) -> AddColumnStatement:
     return AddColumnStatement(maybe_table_name, col.column_name)
 
 
+def parse_drop_column(child: ast.Call) -> DropColumnStatement:
+    maybe_table_name = get_value_from_constant(child.args[0])
+    if maybe_table_name is None:
+        raise Exception("First argument of drop_column is not a valid string")
+    assert isinstance(child.args[1], ast.Constant)
+    maybe_column_name = get_value_from_constant(child.args[1])
+    if maybe_column_name is None:
+        raise Exception("Second argument of drop_column is not a valid string")
+    return DropColumnStatement(maybe_table_name, maybe_column_name)
+
+
+def parse_create_index(child: ast.Call) -> CreateIndexStatement:
+    maybe_table_name = get_value_from_constant(child.args[1])
+    if maybe_table_name is None:
+        raise Exception("Second argument of create_index is not a valid string")
+    return CreateIndexStatement(maybe_table_name)
+
+
+def parse_create_fk(child: ast.Call) -> CreateForeignKeyStatement:
+    maybe_table_name = get_value_from_constant(child.args[1])
+    if maybe_table_name is None:
+        raise Exception("First argument of create_foreign_key is not a valid string")
+    maybe_referent_table_name = get_value_from_constant(child.args[2])
+    if maybe_referent_table_name is None:
+        raise Exception("Second argument of create_foreign_key is not a valid string")
+    return CreateForeignKeyStatement(maybe_table_name, maybe_referent_table_name)
+
+
+def parse_alter_column(child: ast.Call) -> AlterColumnStatement:
+    maybe_table_name = get_value_from_constant(child.args[0])
+    if maybe_table_name is None:
+        raise Exception("First argument of alter_column is not a valid string")
+    maybe_column_name = get_value_from_constant(child.args[1])
+    if maybe_column_name is None:
+        raise Exception("Second argument of alter_column is not a valid string")
+    return AlterColumnStatement(maybe_table_name, maybe_column_name)
+
+
+def parse_drop_table(child: ast.Call) -> DropTableStatement:
+    maybe_table_name = get_value_from_constant(child.args[0])
+    if maybe_table_name is None:
+        raise Exception("First argument of create_foreign_key is not a valid string")
+    return DropTableStatement(maybe_table_name)
+
+
 OPERATION_NAMES = {
     "create_view": ReplaceableOperation.CREATE,
     "drop_view": ReplaceableOperation.DROP,
@@ -193,6 +294,16 @@ def parse_expr(expr: ast.Expr) -> Statement:
                 return parse_table_create(child)
             if is_alembic_call(child.func, "add_column"):
                 return parse_add_column(child)
+            if is_alembic_call(child.func, "drop_column"):
+                return parse_drop_column(child)
+            if is_alembic_call(child.func, "create_index"):
+                return parse_create_index(child)
+            if is_alembic_call(child.func, "create_foreign_key"):
+                return parse_create_fk(child)
+            if is_alembic_call(child.func, "drop_table"):
+                return parse_drop_table(child)
+            if is_alembic_call(child.func, "alter_column"):
+                return parse_alter_column(child)
             if is_replaceable_op(child.func):
                 return parse_replaceable(child)
     return Statement(StatementType.UNKNOWN)

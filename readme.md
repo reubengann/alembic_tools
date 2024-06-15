@@ -56,11 +56,33 @@ to move something to the very beginning.
 
 ```bash
 alembic_tools search --table [table_name]
+alembic_tools search --replaceable [dbo_name]
 ```
 
 Caveats: your alembic import must be `from alembic import op` (which is the default)
 
-Right now, only finds table creation and adding columns
+Right now, only finds (for tables)
+
+- create_table
+- drop_table
+- create_index
+- create_foreign_key
+- add_column
+- drop_column
+- alter_column
+
+and for ReplaceableObjects
+
+- create_view
+- drop_view
+- replace_view
+- create_sproc
+- drop_sproc
+- replace_sproc
+- create_func
+- drop_func
+- replace_func
+
 
 ## Development
 

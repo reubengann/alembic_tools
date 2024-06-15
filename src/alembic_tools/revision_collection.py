@@ -73,7 +73,7 @@ def topological_sort(graph: dict[str, list[str]]) -> list[str]:
         if node not in visited:
             dfs(node)
 
-    return stack[::-1]  # Reverse the stack to get the topological order
+    return stack
 
 
 def assign_order(script_folder: ScriptDirectory) -> dict[str, int]:
